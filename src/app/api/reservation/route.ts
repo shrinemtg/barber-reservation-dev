@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import type { Reservation, ReservationMenu } from "@/types/supabase";
+import type { Reservation } from "@/types/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ reservation, menu_ids }, { status: 201 });
-  } catch (e) {
+  } catch (error: unknown) {
     return NextResponse.json(
       { error: "不正なリクエストです" },
       { status: 400 }

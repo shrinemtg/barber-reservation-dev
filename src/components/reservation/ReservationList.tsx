@@ -87,7 +87,7 @@ export function ReservationList() {
         setReservations(data.reservations || []);
         setLoading(false);
       })
-      .catch((e) => {
+      .catch(() => {
         setError("取得に失敗しました");
         setLoading(false);
       });
@@ -122,7 +122,7 @@ export function ReservationList() {
                 </td>
               </tr>
             ) : (
-              reservations.map((r, i) => {
+              reservations.map((r) => {
                 const dt = new Date(r.reserved_at);
                 let statusColor = "text-gray-500";
                 if (r.status === "reserved")

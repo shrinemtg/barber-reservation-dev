@@ -168,19 +168,6 @@ export function ReservationForm() {
     return sum;
   }, [menu, menuGroups]);
 
-  // 選択中メニューの最大durationを取得
-  const maxDuration = useMemo(() => {
-    if (!menuGroups.length) return 0;
-    let max = 0;
-    for (const group of menuGroups) {
-      if (!group.items) continue;
-      for (const item of group.items as Menu[]) {
-        if (menu.includes(item.id) && item.duration > max) max = item.duration;
-      }
-    }
-    return max;
-  }, [menu, menuGroups]);
-
   // 時間帯リスト生成（複数メニュー選択時は合計durationで枠を占有）
   const timeSlots = useMemo(
     () => getTimeSlots(date, menu, menuGroups, sumDuration),
@@ -356,7 +343,7 @@ export function ReservationForm() {
       }
       setShowConfirm(false);
       setIsComplete(true);
-    } catch (e) {
+    } catch {
       setValidationError("通信エラーが発生しました");
     }
   }

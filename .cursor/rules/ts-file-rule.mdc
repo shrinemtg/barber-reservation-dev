@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ Rule Name: ts-file-rule
+Description: 
+---
+description: TypeScript（.ts）ファイルの用途・命名・使い分けルール
+---
+
+# .tsファイルの使い分け・命名・用途ルール
+
+- .tsファイルは**ReactのJSXを含まない純粋なTypeScriptファイル**にのみ使用する。
+- 主な用途：
+  - API Route（例: src/app/api/xxx/route.ts）
+  - サーバー専用処理（例: サーバーアクション、DB操作、APIクライアント）
+  - ユーティリティ関数・ヘルパー
+  - 型定義・インターフェース・型ユーティリティ
+  - 定数・設定ファイル
+- .tsファイル内でReactのJSXを記述してはならない。
+- UIコンポーネントやページなど、JSXを含む場合は必ず.tsx拡張子を使用する。
+- ファイル名・ディレクトリ名は既存ルール（小文字・ダッシュ区切り等）に従うこと。
+- API Routeやサーバー専用処理は、Next.js公式推奨に従い.ts拡張子で作成する。
+
+# 例
+- API Route: src/app/api/xxx/route.ts
+- 型定義: src/types/xxx.ts
+- ユーティリティ: src/lib/xxx.ts
+
+---
+このルールはプロジェクト全体に適用する。

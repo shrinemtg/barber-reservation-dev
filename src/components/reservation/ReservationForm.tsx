@@ -19,6 +19,7 @@ import { ja } from "date-fns/locale";
 import { fetchMenus, fetchStaffs } from "@/lib/supabaseMenuStaff";
 import type { Menu, Staff } from "@/types/supabase";
 import { ReservationComplete } from "./ReservationComplete";
+import Image from "next/image";
 
 // 定休日判定
 function isClosed(date: Date) {
@@ -283,8 +284,12 @@ export function ReservationForm() {
         setMenuGroups(groups);
         const staffsData = await fetchStaffs();
         setStaffs(staffsData);
-      } catch (e: any) {
-        setLoadError(e.message || "データ取得に失敗しました");
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          setLoadError(e.message);
+        } else {
+          setLoadError("データ取得に失敗しました");
+        }
       } finally {
         setLoading(false);
       }
@@ -485,10 +490,13 @@ export function ReservationForm() {
                 <div key={group.label} className="mb-6">
                   <div className="relative w-full h-28 rounded overflow-hidden mb-2">
                     {imageFile && (
-                      <img
+                      <Image
                         src={`/menu/${imageFile}`}
                         alt={group.label}
                         className="w-full h-full object-cover filter brightness-75"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        priority={group.label === "カット"}
                       />
                     )}
                     <span className="absolute inset-0 flex flex-col items-center justify-center">

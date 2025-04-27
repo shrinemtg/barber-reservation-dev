@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ reservation, menu_ids }, { status: 201 });
-  } catch (error: unknown) {
+  } catch {
     return NextResponse.json(
       { error: "不正なリクエストです" },
       { status: 400 }

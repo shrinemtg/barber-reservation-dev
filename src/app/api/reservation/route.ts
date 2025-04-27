@@ -123,7 +123,7 @@ export async function GET() {
     }
     const result = Array.from(reservationMap.values());
     return NextResponse.json({ reservations: result }, { status: 200 });
-  } catch (_e) {
+  } catch {
     return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
   }
 }

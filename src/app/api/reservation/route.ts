@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // reservationsに保存
-    const { data: reservation, error } = await supabase
+    const insertResult = await supabase
       .from("reservations")
       .insert([
         {
@@ -61,12 +61,13 @@ export async function POST(req: NextRequest) {
       ])
       .select()
       .single();
-    if (error || !reservation) {
+    if (insertResult.error || !insertResult.data) {
       return NextResponse.json(
-        { error: error?.message || "予約登録に失敗しました" },
+        { error: insertResult.error?.message || "予約登録に失敗しました" },
         { status: 500 }
       );
     }
+    const reservation = insertResult.data;
 
     // reservation_menusに全menu_idを保存
     const reservationMenus = menu_ids.map((menu_id: string) => ({

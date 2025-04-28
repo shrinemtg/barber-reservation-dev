@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import { fetchStaffs } from "@/lib/supabaseMenuStaff";
+import type { Staff } from "@/types/supabase";
 
 interface Reservation {
   id: string;
@@ -14,11 +16,6 @@ interface Reservation {
 }
 
 interface Menu {
-  id: string;
-  name: string;
-}
-
-interface Staff {
   id: string;
   name: string;
 }
@@ -58,19 +55,16 @@ const menuList: Menu[] = [
   { id: "junior_discount", name: "中学生割（-1000円）" },
   { id: "elementary_discount", name: "小学生割（-1200円）" },
 ];
-const staffList: Staff[] = [
-  { id: "staff1", name: "山田 太郎" },
-  { id: "staff2", name: "佐藤 花子" },
-];
 
 function getMenuNames(ids: string[]) {
   return ids
     .map((id) => menuList.find((m) => m.id === id)?.name || id)
     .join(", ");
 }
-function getStaffName(id: string | null) {
+
+function getStaffName(id: string | null, staffs: Staff[]) {
   if (!id) return "指定なし";
-  return staffList.find((s) => s.id === id)?.name || id;
+  return staffs.find((s) => s.id === id)?.name || id;
 }
 
 export function ReservationList() {
@@ -78,6 +72,9 @@ export function ReservationList() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [staffs, setStaffs] = useState<Staff[]>([]);
+  const [staffsLoading, setStaffsLoading] = useState(false);
+  const [staffsError, setStaffsError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -93,6 +90,19 @@ export function ReservationList() {
       });
   }, []);
 
+  useEffect(() => {
+    setStaffsLoading(true);
+    fetchStaffs()
+      .then((data) => {
+        setStaffs(data);
+        setStaffsLoading(false);
+      })
+      .catch(() => {
+        setStaffsError("スタッフ情報の取得に失敗しました");
+        setStaffsLoading(false);
+      });
+  }, []);
+
   return (
     <Card className="max-w-3xl mx-auto mt-8 p-4 shadow-xl rounded-2xl">
       <div className="mb-4 flex justify-between items-center">
@@ -103,6 +113,8 @@ export function ReservationList() {
       </div>
       {loading && <div>読み込み中...</div>}
       {error && <div className="text-red-500">{error}</div>}
+      {staffsLoading && <div>スタッフ情報を取得中...</div>}
+      {staffsError && <div className="text-red-500">{staffsError}</div>}
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead>
@@ -149,7 +161,7 @@ export function ReservationList() {
                       {getMenuNames(r.menu_ids)}
                     </td>
                     <td className="border px-2 py-1">
-                      {getStaffName(r.staff_id)}
+                      {getStaffName(r.staff_id, staffs)}
                     </td>
                     <td className={`border px-2 py-1 ${statusColor}`}>
                       {r.status}

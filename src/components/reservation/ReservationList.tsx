@@ -126,28 +126,22 @@ export function ReservationList() {
         <table className="min-w-full border text-sm">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-2 py-1">日付</th>
-              <th className="border px-2 py-1">時間</th>
+              <th className="border px-2 py-1">予約日</th>
+              <th className="border px-2 py-1">開始時間</th>
               <th className="border px-2 py-1">メニュー</th>
               <th className="border px-2 py-1">担当者</th>
-              <th className="border px-2 py-1">ステータス</th>
             </tr>
           </thead>
           <tbody>
             {reservations.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-400">
+                <td colSpan={4} className="text-center py-8 text-gray-400">
                   予約はありません
                 </td>
               </tr>
             ) : (
               reservations.map((r) => {
                 const dt = new Date(r.reserved_at);
-                let statusColor = "text-gray-500";
-                if (r.status === "reserved")
-                  statusColor = "text-blue-500 font-bold";
-                if (r.status === "canceled")
-                  statusColor = "text-red-500 font-bold";
                 return (
                   <tr
                     key={r.id}
@@ -169,9 +163,6 @@ export function ReservationList() {
                     </td>
                     <td className="border px-2 py-1">
                       {getStaffName(r.staff_id, staffs)}
-                    </td>
-                    <td className={`border px-2 py-1 ${statusColor}`}>
-                      {r.status}
                     </td>
                   </tr>
                 );

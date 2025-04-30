@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { fetchStaffs } from "@/lib/supabaseMenuStaff";
 import type { Staff } from "@/types/supabase";
+import { useLineAuth } from "@/components/line-auth/LineAuthProvider";
 
 interface Reservation {
   id: string;
@@ -69,6 +70,7 @@ function getStaffName(id: string | null, staffs: Staff[]) {
 
 export function ReservationList() {
   const router = useRouter();
+  const { user, isLoggedIn } = useLineAuth();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,8 +79,13 @@ export function ReservationList() {
   const [staffsError, setStaffsError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user || !isLoggedIn) return;
     setLoading(true);
-    fetch("/api/reservation")
+    fetch("/api/reservation", {
+      headers: {
+        "x-line-user-id": user.userId,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         setReservations(data.reservations || []);
@@ -88,7 +95,7 @@ export function ReservationList() {
         setError("取得に失敗しました");
         setLoading(false);
       });
-  }, []);
+  }, [user, isLoggedIn]);
 
   useEffect(() => {
     setStaffsLoading(true);

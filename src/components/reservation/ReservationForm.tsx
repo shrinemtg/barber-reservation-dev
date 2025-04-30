@@ -343,6 +343,8 @@ export function ReservationForm() {
     // 送信データ整形
     const reservationData = {
       user_id: user.userId, // LINE認証ユーザーIDをセット
+      user_name: user.displayName, // プロフィール名も送信
+      picture_url: user.pictureUrl, // プロフィール画像も送信
       menu_ids: menu, // 複数選択したメニューID配列
       staff_id: staff !== "none" ? staff : null,
       reserved_at:

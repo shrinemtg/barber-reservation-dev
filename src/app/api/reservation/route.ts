@@ -7,7 +7,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("予約API受信body:", body);
     // 必須項目チェック
-    const { user_id, menu_ids, staff_id, reserved_at, status } = body;
+    const {
+      user_id,
+      user_name,
+      picture_url,
+      menu_ids,
+      staff_id,
+      reserved_at,
+      status,
+    } = body;
     if (
       !user_id ||
       !menu_ids ||
@@ -42,7 +50,8 @@ export async function POST(req: NextRequest) {
         .insert([
           {
             line_user_id: user_id,
-            name: "LINEユーザー", // 必要に応じてprofileから取得
+            name: user_name || "LINEユーザー", // プロフィール名を優先
+            picture_url: picture_url || null, // 画像も保存
             role: "customer",
           },
         ])
@@ -56,7 +65,23 @@ export async function POST(req: NextRequest) {
       }
       userRecord = newUser;
     } else {
-      userRecord = existingUser;
+      // 既存ユーザーも最新プロフィール名・画像で上書き
+      const { data: updatedUser, error: updateError } = await supabase
+        .from("users")
+        .update({
+          name: user_name || existingUser.name,
+          picture_url: picture_url || existingUser.picture_url,
+        })
+        .eq("id", existingUser.id)
+        .select()
+        .single();
+      if (updateError || !updatedUser) {
+        return NextResponse.json(
+          { error: updateError?.message || "ユーザー情報の更新に失敗しました" },
+          { status: 500 }
+        );
+      }
+      userRecord = updatedUser;
     }
     // --- ここまで追加 ---
 

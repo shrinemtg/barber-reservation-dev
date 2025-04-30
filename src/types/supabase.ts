@@ -6,6 +6,7 @@ export interface User {
   line_user_id: string;
   name: string;
   role: "customer" | "admin";
+  picture_url?: string;
   created_at: string;
   updated_at: string;
 }

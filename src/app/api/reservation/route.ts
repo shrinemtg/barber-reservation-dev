@@ -21,6 +21,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // --- 追加: usersテーブルにLINEユーザーIDがなければ自動登録 ---
+    let userRecord = null;
+    const { data: existingUser, error: userFetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("line_user_id", user_id)
+      .single();
+    if (userFetchError && userFetchError.code !== "PGRST116") {
+      // PGRST116: No rows found
+      return NextResponse.json(
+        { error: userFetchError.message },
+        { status: 500 }
+      );
+    }
+    if (!existingUser) {
+      // 新規登録
+      const { data: newUser, error: userInsertError } = await supabase
+        .from("users")
+        .insert([
+          {
+            line_user_id: user_id,
+            name: "LINEユーザー", // 必要に応じてprofileから取得
+            role: "customer",
+          },
+        ])
+        .select()
+        .single();
+      if (userInsertError || !newUser) {
+        return NextResponse.json(
+          { error: userInsertError?.message || "ユーザー登録に失敗しました" },
+          { status: 500 }
+        );
+      }
+      userRecord = newUser;
+    } else {
+      userRecord = existingUser;
+    }
+    // --- ここまで追加 ---
+
     // staff_idの正規化
     const normalizedStaffId =
       !staff_id || staff_id === "none" || staff_id === "null" ? null : staff_id;

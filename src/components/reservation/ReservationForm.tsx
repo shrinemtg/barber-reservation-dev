@@ -20,6 +20,7 @@ import { fetchMenus, fetchStaffs } from "@/lib/supabaseMenuStaff";
 import type { Menu, Staff } from "@/types/supabase";
 import { ReservationComplete } from "./ReservationComplete";
 import Image from "next/image";
+import { useLineAuth } from "@/components/line-auth/LineAuthProvider";
 
 // 定休日判定
 function isClosed(date: Date) {
@@ -124,6 +125,12 @@ function getClosedDays(month: Date) {
 }
 
 export function ReservationForm() {
+  const {
+    isLoggedIn,
+    user,
+    loading: authLoading,
+    error: authError,
+  } = useLineAuth();
   // useState, useMemo, useEffect すべてここで宣言
   const [date, setDate] = useState<Date | undefined>();
   const [menu, setMenu] = useState<string[]>([]);
@@ -297,6 +304,17 @@ export function ReservationForm() {
     load();
   }, []);
 
+  // 未ログイン・認証中・エラー時のUI
+  if (authLoading) return <div className="text-center py-8">LINE認証中...</div>;
+  if (authError)
+    return (
+      <div className="text-center text-red-500 py-8">
+        認証エラー: {authError}
+      </div>
+    );
+  if (!isLoggedIn || !user)
+    return <div className="text-center py-8">LINEログインが必要です</div>;
+
   // ここでローディング・エラーのreturn
   if (loading)
     return (
@@ -318,9 +336,13 @@ export function ReservationForm() {
   // 予約確定時の処理（API呼び出し）
   async function handleConfirm() {
     setValidationError(null);
+    if (!user) {
+      setValidationError("LINEログイン情報が取得できませんでした");
+      return;
+    }
     // 送信データ整形
     const reservationData = {
-      user_id: "00000000-0000-0000-0000-000000000000", // ダミーUUID（LINE連携時に置き換え）
+      user_id: user.userId, // LINE認証ユーザーIDをセット
       menu_ids: menu, // 複数選択したメニューID配列
       staff_id: staff !== "none" ? staff : null,
       reserved_at:

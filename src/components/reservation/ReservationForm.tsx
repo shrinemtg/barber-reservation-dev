@@ -362,7 +362,10 @@ export function ReservationForm() {
     try {
       const res = await fetch("/api/reservation", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-line-user-id": user.userId,
+        },
         body: JSON.stringify(reservationData),
       });
       const result = await res.json();

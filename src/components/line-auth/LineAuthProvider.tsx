@@ -52,8 +52,12 @@ export function LineAuthProvider({ children }: { children: ReactNode }) {
           displayName: profile.displayName,
           pictureUrl: profile.pictureUrl,
         });
-      } catch (e: any) {
-        setError(e.message || "LIFF初期化エラー");
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          setError(e.message || "LIFF初期化エラー");
+        } else {
+          setError("LIFF初期化エラー");
+        }
       } finally {
         setLoading(false);
       }

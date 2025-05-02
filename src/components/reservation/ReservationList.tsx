@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { fetchStaffs } from "@/lib/supabaseMenuStaff";
-import type { Staff } from "@/types/supabase";
+import { fetchStaffs, fetchMenus } from "@/lib/supabaseMenuStaff";
+import type { Staff, Menu } from "@/types/supabase";
 import { useLineAuth } from "@/components/line-auth/LineAuthProvider";
 
 interface Reservation {
@@ -16,58 +16,6 @@ interface Reservation {
   menu_ids: string[];
 }
 
-interface Menu {
-  id: string;
-  name: string;
-}
-
-// 仮のメニュー・スタッフ名リスト（本来はAPIやpropsで取得）
-const menuList: Menu[] = [
-  { id: "cut_full", name: "カット(シャンプー・シェービング付き)" },
-  {
-    id: "cut_no_shampoo_shave",
-    name: "カット(シャンプーまたはシェービングなし)",
-  },
-  { id: "cut_only", name: "カットのみ" },
-  { id: "buzzcut", name: "バリカン丸刈り" },
-  { id: "perm_point", name: "ポイントパーマ" },
-  { id: "perm_full", name: "フルパーマ" },
-  { id: "perm_twist", name: "ツイストパーマ" },
-  { id: "perm_pin", name: "ピンパーマ" },
-  { id: "perm_spiral", name: "スパイラルパーマ" },
-  { id: "perm_mix", name: "ミックスパーマ" },
-  { id: "color", name: "カラー" },
-  { id: "bleach", name: "ブリーチ" },
-  { id: "mesh", name: "メッシュ・ウォービング・スライジング" },
-  { id: "gray_color", name: "カラー白髪染め" },
-  { id: "black_gray", name: "黒白髪染め" },
-  { id: "gray_blur", name: "白髪ぼかし" },
-  { id: "straight", name: "縮毛矯正" },
-  { id: "straight_partial", name: "縮毛矯正部分" },
-  { id: "ladies_regular", name: "レギュラーコース（40分）" },
-  { id: "ladies_algae", name: "アルゲパックコース（45分）" },
-  { id: "ladies_bridal", name: "ブライダルコース（90分）" },
-  { id: "mist_shave", name: "ミストシェービング" },
-  { id: "scalp_care", name: "頭皮ケアコース(10分)" },
-  { id: "shoulder_massage", name: "肩もみコース(10分)" },
-  { id: "facial_esthe", name: "美顔エステコース(10分)" },
-  { id: "senior_discount", name: "シニア割（-300円）" },
-  { id: "highschool_discount", name: "高校生割（-600円）" },
-  { id: "junior_discount", name: "中学生割（-1000円）" },
-  { id: "elementary_discount", name: "小学生割（-1200円）" },
-];
-
-function getMenuNames(ids: string[]) {
-  return ids
-    .map((id) => menuList.find((m) => m.id === id)?.name || id)
-    .join(", ");
-}
-
-function getStaffName(id: string | null, staffs: Staff[]) {
-  if (!id) return "指定なし";
-  return staffs.find((s) => s.id === id)?.name || id;
-}
-
 export function ReservationList() {
   const router = useRouter();
   const { user, isLoggedIn } = useLineAuth();
@@ -77,6 +25,9 @@ export function ReservationList() {
   const [staffs, setStaffs] = useState<Staff[]>([]);
   const [staffsLoading, setStaffsLoading] = useState(false);
   const [staffsError, setStaffsError] = useState<string | null>(null);
+  const [menus, setMenus] = useState<Menu[]>([]);
+  const [menusLoading, setMenusLoading] = useState(true);
+  const [menusError, setMenusError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !isLoggedIn) return;
@@ -110,6 +61,43 @@ export function ReservationList() {
       });
   }, []);
 
+  useEffect(() => {
+    setMenusLoading(true);
+    fetchMenus()
+      .then((data) => {
+        setMenus(data);
+        setMenusLoading(false);
+      })
+      .catch(() => {
+        setMenusError("メニュー情報の取得に失敗しました");
+        setMenusLoading(false);
+      });
+  }, []);
+
+  function getMenuNames(ids: string[] | string) {
+    const arr = Array.isArray(ids) ? ids : [ids];
+    return arr
+      .map((id) => {
+        const found = menus.find(
+          (m) =>
+            String(m.id).trim().toLowerCase() ===
+            String(id).trim().toLowerCase()
+        );
+        return found ? found.name : `不明なメニュー（${id}）`;
+      })
+      .join(", ");
+  }
+
+  function getStaffName(id: string | null, staffs: Staff[]) {
+    if (!id) return "指定なし";
+    return staffs.find((s) => s.id === id)?.name || id;
+  }
+
+  if (menusLoading)
+    return <div className="text-center py-8">メニュー情報を取得中...</div>;
+  if (menusError)
+    return <div className="text-center text-red-500 py-8">{menusError}</div>;
+
   return (
     <Card className="max-w-3xl mx-auto mt-8 p-4 shadow-xl rounded-2xl">
       <div className="mb-4 flex justify-between items-center">
@@ -122,6 +110,20 @@ export function ReservationList() {
       {error && <div className="text-red-500">{error}</div>}
       {staffsLoading && <div>スタッフ情報を取得中...</div>}
       {staffsError && <div className="text-red-500">{staffsError}</div>}
+      <pre>{JSON.stringify(reservations, null, 2)}</pre>
+      {/* デバッグ用: menusリストのIDとnameを出力 */}
+      <details className="mb-2">
+        <summary className="cursor-pointer text-xs text-gray-500">
+          menusデータ（idとname）を表示
+        </summary>
+        <pre className="text-xs bg-gray-50 p-2 border rounded max-h-40 overflow-auto">
+          {JSON.stringify(
+            menus.map((m) => ({ id: m.id, name: m.name })),
+            null,
+            2
+          )}
+        </pre>
+      </details>
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead>
@@ -159,7 +161,9 @@ export function ReservationList() {
                       })}
                     </td>
                     <td className="border px-2 py-1">
-                      {getMenuNames(r.menu_ids)}
+                      {getMenuNames(
+                        Array.isArray(r.menu_ids) ? r.menu_ids : [r.menu_ids]
+                      )}
                     </td>
                     <td className="border px-2 py-1">
                       {getStaffName(r.staff_id, staffs)}

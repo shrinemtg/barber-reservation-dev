@@ -110,20 +110,6 @@ export function ReservationList() {
       {error && <div className="text-red-500">{error}</div>}
       {staffsLoading && <div>スタッフ情報を取得中...</div>}
       {staffsError && <div className="text-red-500">{staffsError}</div>}
-      <pre>{JSON.stringify(reservations, null, 2)}</pre>
-      {/* デバッグ用: menusリストのIDとnameを出力 */}
-      <details className="mb-2">
-        <summary className="cursor-pointer text-xs text-gray-500">
-          menusデータ（idとname）を表示
-        </summary>
-        <pre className="text-xs bg-gray-50 p-2 border rounded max-h-40 overflow-auto">
-          {JSON.stringify(
-            menus.map((m) => ({ id: m.id, name: m.name })),
-            null,
-            2
-          )}
-        </pre>
-      </details>
       <div className="overflow-x-auto">
         <table className="min-w-full border text-sm">
           <thead>
